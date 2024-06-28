@@ -8,6 +8,10 @@ ORG = "pcdshub"
 
 @dataclasses.dataclass(frozen=True)
 class RepoInfo:
+    """
+    Information about where an AFS repository will be transferred.
+    """
+
     name: str
     github_url: str
     github_ssh: str
@@ -15,6 +19,9 @@ class RepoInfo:
 
     @classmethod
     def from_afs(cls: type[T], afs_source: str) -> T:
+        """
+        Create a RepoInfo instance given the pull path to the afs source.
+        """
         name = rename(afs_source)
         github_url = f"https://github.com/{ORG}/{name}.git"
         github_ssh = f"git@github.com:{ORG}/{name}.git"
