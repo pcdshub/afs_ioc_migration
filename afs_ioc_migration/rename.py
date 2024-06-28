@@ -1,12 +1,29 @@
 import dataclasses
 import os.path
+import typing
+
+T = typing.TypeVar("T")
+ORG = "pcdshub"
 
 
-@dataclasses.dataclass
+@dataclasses.dataclass(frozen=True)
 class RepoInfo:
     name: str
     github_url: str
+    github_ssh: str
     afs_source: str
+
+    @classmethod
+    def from_afs(cls: type[T], afs_source: str) -> T:
+        name = rename(afs_source)
+        github_url = f"https://github.com/{ORG}/{name}.git"
+        github_ssh = f"git@github.com:{ORG}/{name}.git"
+        return cls(
+            name=name,
+            github_url=github_url,
+            github_ssh=github_ssh,
+            afs_source=afs_source,
+        )
 
 
 afs_areas = [
