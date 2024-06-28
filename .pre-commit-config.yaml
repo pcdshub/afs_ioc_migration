@@ -15,7 +15,6 @@ repos:
     -   id: check-symlinks
     -   id: check-xml
     -   id: check-yaml
-        exclude: '^(conda-recipe/meta.yaml)$'
     -   id: debug-statements
 
 -   repo: https://github.com/astral-sh/ruff-pre-commit
