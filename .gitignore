@@ -1,0 +1,9 @@
+*.swp
+__pycache__
+build
+*.pyc
+*~
+
+.pytest_cache
+.benchmarks
+.vscode
