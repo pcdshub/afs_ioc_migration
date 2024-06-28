@@ -1,0 +1,17 @@
+#!/bin/bash
+
+echo ""
+echo "==============================================================================="
+echo "The entire afs filesystem is deprecated and is planned for removal."
+echo "{afs_source} has been migrated to github."
+echo "Instead of pushing here, please do the following:"
+echo "- create a fork of {github_url} to your github username."
+echo "- update your clone using the git remote --set-url commands:"
+echo '  "git remote --set-url origin git@github.com:$YOUR_USERNAME/{name}.git"'
+echo '  "git remote --set-url upstream {github_ssh}"'
+echo "- push your branch to origin"
+echo "- open a pull request at {github_url}"
+echo "==============================================================================="
+echo ""
+
+exit 1
