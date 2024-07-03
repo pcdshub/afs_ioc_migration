@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from ..lock_repo import lock_file_repo
+from ..lock_repo import AlreadyLockedError, lock_file_repo
 from ..rename import RepoInfo
 
 
@@ -56,7 +56,7 @@ def test_hook_invalid(fake_not_a_repo: Path):
 def test_hook_already_done(fake_already_done_repo: Path):
     expected_hooks = fake_already_done_repo / "hooks" / "pre-recieve"
     assert expected_hooks.exists()
-    with pytest.raises(RuntimeError):
+    with pytest.raises(AlreadyLockedError):
         lock_file_repo(str(fake_already_done_repo))
 
 

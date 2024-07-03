@@ -3,6 +3,9 @@ from pathlib import Path
 from .rename import RepoInfo
 
 
+class AlreadyLockedError(RuntimeError): ...
+
+
 def lock_file_repo(path: str) -> None:
     """
     Add a pre-recieve hook to a filepath repo to prevent further pushes.
@@ -18,7 +21,7 @@ def lock_file_repo(path: str) -> None:
         )
     pre_receive_path = hooks_dir / "pre-recieve"
     if pre_receive_path.exists():
-        raise RuntimeError(
+        raise AlreadyLockedError(
             f"There is already a pre-recieve hook at {pre_receive_path}."
         )
 
