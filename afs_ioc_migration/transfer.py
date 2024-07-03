@@ -6,6 +6,7 @@ from ghapi.all import GhApi
 from git import Repo
 
 from .lock_repo import AlreadyLockedError, lock_file_repo
+from .modify import add_gitignore, add_license_file
 from .rename import ORG, RepoInfo
 
 
@@ -56,12 +57,20 @@ def migrate_repo(afs_path: str) -> None:
         afs_head = repo.create_head("afs_head", afs_remote.refs.afs_remote)
         afs_head.checkout()
 
-        # Make systemic modifications (.gitignore, license, maybe others)
-        # TODO implement these modifications
-        # Commit systemic modifications
+        # Make and commit systemic modifications (.gitignore, license, maybe others)
+        license = add_license_file(cloned_path=dir)
+        commit(repo, license, "MAINT: adding standard license file")
+        gitignore = add_gitignore(cloned_path=dir)
+        commit(repo, gitignore, "MAINT: adding standard gitignore")
 
         # Push to the blank repo
         github_remote = repo.create_remote(name="github_remote", url=info.github_ssh)
         github_remote.push()
 
     # Apply properties to the repo
+
+
+def commit(repo: Repo, path: Path, msg: str) -> None:
+    repo.index.add([str(path)])
+    repo.index.write()
+    repo.index.commit(msg)

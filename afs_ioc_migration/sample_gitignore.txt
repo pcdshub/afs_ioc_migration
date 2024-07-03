@@ -1,0 +1,19 @@
+# EPICS ignores
+O.*
+archive
+autosave
+bin
+build
+db
+dbd
+envPaths
+
+# Terminal editor ignores
+*.swp
+*~
+
+# IDE ignores
+*.vscode
+
+# Core dumps
+core.*
