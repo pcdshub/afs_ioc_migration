@@ -51,6 +51,7 @@ def migrate_repo(afs_path: str) -> None:
 
     # Clone from afs to a temporary directory
     with TemporaryDirectory() as dir:
+        print(f"Cloning from {afs_path}")
         repo = Repo.init(path=dir, mkdir=False)
         afs_remote = repo.create_remote(name="afs_remote", url=afs_path)
         afs_remote.fetch()
@@ -58,12 +59,15 @@ def migrate_repo(afs_path: str) -> None:
         afs_head.checkout()
 
         # Make and commit systemic modifications (.gitignore, license, maybe others)
+        print("Adding license file")
         license = add_license_file(cloned_path=dir)
         commit(repo, license, "MAINT: adding standard license file")
+        print("Adding gitignore")
         gitignore = add_gitignore(cloned_path=dir)
         commit(repo, gitignore, "MAINT: adding standard gitignore")
 
         # Push to the blank repo
+        print("Pushing repo to github")
         github_remote = repo.create_remote(name="github_remote", url=info.github_ssh)
         github_remote.push()
 
