@@ -47,7 +47,17 @@ def migrate_repo(afs_path: str) -> None:
     if not repo_exists:
         print(f"Creating repository at {info.github_url}")
         # Note: can also include custom_properties=dict here, but I think I want to import the migration tools and do it later
-        gh.repos.create_in_org(org=ORG, name=info.name)
+        gh.repos.create_in_org(
+            org=ORG,
+            name=info.name,
+            custom_properties={
+                "repo_type": "EPICS IOC",
+                "default": True,
+                "master": True,
+                "gh_pages": False,
+                "status_checks": None,
+            },
+        )
 
     # Clone from afs to a temporary directory
     with TemporaryDirectory() as dir:
@@ -70,8 +80,6 @@ def migrate_repo(afs_path: str) -> None:
         print("Pushing repo to github")
         github_remote = repo.create_remote(name="github_remote", url=info.github_ssh)
         github_remote.push()
-
-    # Apply properties to the repo
 
 
 def commit(repo: Repo, path: Path, msg: str) -> None:
