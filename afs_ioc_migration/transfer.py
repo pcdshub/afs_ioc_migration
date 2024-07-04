@@ -58,6 +58,18 @@ def migrate_repo(afs_path: str) -> None:
             },
         )
 
+    # Set repo topics
+    gh.repos.replace_all_topics(
+        owner=ORG,
+        repo=info.name,
+        names=[
+            "EPICS",
+            "IOC",
+            "SLAC",
+            "LCLS",
+        ],
+    )
+
     # Clone from afs to a temporary directory
     with TemporaryDirectory() as dir:
         print(f"Cloning from {afs_path}")
