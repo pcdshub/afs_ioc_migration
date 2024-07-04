@@ -46,7 +46,6 @@ def migrate_repo(afs_path: str) -> None:
     # Create the blank repo if needed
     if not repo_exists:
         print(f"Creating repository at {info.github_url}")
-        # Note: can also include custom_properties=dict here, but I think I want to import the migration tools and do it later
         gh.repos.create_in_org(
             org=ORG,
             name=info.name,
