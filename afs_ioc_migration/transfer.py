@@ -6,7 +6,7 @@ from ghapi.all import GhApi
 from git import Repo
 
 from .lock_repo import AlreadyLockedError, lock_file_repo
-from .modify import add_gitignore, add_license_file
+from .modify import add_github_folder, add_gitignore, add_license_file
 from .rename import ORG, RepoInfo
 
 
@@ -86,6 +86,9 @@ def migrate_repo(afs_path: str) -> None:
         print("Adding gitignore")
         gitignore = add_gitignore(cloned_path=dir)
         commit(repo, gitignore, "MAINT: adding standard gitignore")
+        print("Adding github templates")
+        github_templates = add_github_folder(cloned_path=dir)
+        commit(repo, github_templates, "MAINT: add github templates")
 
         # Push to the blank repo
         print("Pushing repo to github")
