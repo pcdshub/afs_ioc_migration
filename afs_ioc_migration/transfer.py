@@ -10,6 +10,9 @@ from .modify import add_github_folder, add_gitignore, add_license_file
 from .rename import ORG, RepoInfo
 
 
+class RepoExistsError(RuntimeError): ...
+
+
 def migrate_repo(afs_path: str) -> None:
     # Lock the afs repo if it isn't locked
     print(f"Locking afs repo {afs_path}...")
@@ -41,7 +44,9 @@ def migrate_repo(afs_path: str) -> None:
             # Some unknown 4xx http error
             raise
     else:
-        raise RuntimeError(f"Repo {info.github_url} exists and has commits, aborting.")
+        raise RepoExistsError(
+            f"Repo {info.github_url} exists and has commits, aborting."
+        )
 
     # Create the blank repo if needed
     if not repo_exists:
