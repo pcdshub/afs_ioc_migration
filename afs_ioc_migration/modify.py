@@ -33,6 +33,7 @@ def add_gitignore(cloned_path: str) -> Path:
 
 
 def add_github_folder(cloned_path: str) -> Path:
+    """Add a .github folder with PR and issue templates to the repo."""
     return add_file(
         cloned_path=cloned_path,
         source_name="sample_github_folder",
