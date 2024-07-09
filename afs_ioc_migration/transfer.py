@@ -6,7 +6,7 @@ from ghapi.all import GhApi
 from git import Repo
 
 from .lock_repo import AlreadyLockedError, lock_file_repo
-from .modify import add_github_folder, add_gitignore, add_license_file
+from .modify import add_github_folder, add_gitignore, add_license_file, add_readme_file
 from .rename import ORG, RepoInfo
 
 
@@ -114,6 +114,11 @@ def migrate_repo(afs_path: str) -> None:
         print("Adding github templates")
         github_templates = add_github_folder(cloned_path=path)
         commit(repo, github_templates, "MAINT: add github templates")
+        print("Updating readme")
+        new_readme, old_readme = add_readme_file(cloned_path=path, repo_name=info.name)
+        if old_readme is not None:
+            repo.index.remove([str(old_readme)])
+        commit(repo, new_readme, "MAINT: update readme")
 
         # Create a same-named head for every single branch on the afs remote
         for fetch in fetch_info:
