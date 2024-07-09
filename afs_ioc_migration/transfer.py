@@ -118,9 +118,9 @@ def migrate_repo(afs_path: str) -> None:
         github_templates = add_github_folder(cloned_path=path)
         commit(repo, github_templates, "MAINT: add github templates")
         print("Updating readme")
-        new_readme, old_readme = add_readme_file(cloned_path=path, repo_name=info.name)
-        if old_readme is not None:
-            repo.index.remove([str(old_readme)])
+        new_readme, old_readmes = add_readme_file(cloned_path=path, repo_name=info.name)
+        if old_readmes:
+            repo.index.remove([str(p) for p in old_readmes])
         commit(repo, new_readme, "MAINT: update readme")
 
         # Time to push everything

@@ -52,7 +52,7 @@ def test_add_readme_file_none_existing(tmp_path: Path):
         contents = fd.read()
     assert "test_name" in contents
     assert "EPICS IOC" in contents
-    assert "Original README" not in contents
+    assert "Original" not in contents
 
 
 def test_add_readme_file_already_existing(tmp_path: Path):
@@ -63,20 +63,30 @@ def test_add_readme_file_already_existing(tmp_path: Path):
 
 
 def test_add_readme_file_include_old(tmp_path: Path):
-    old_readme_text = "very unique test text will not collide"
-    old_readme_path = tmp_path / "README"
-    with old_readme_path.open("w") as fd:
-        fd.write(old_readme_text)
-    assert old_readme_path.exists()
-    path, old_path = add_readme_file(str(tmp_path), "test_name")
+    old_readme_text1 = "very unique test text will not collide"
+    old_readme_text2 = "another very unique test text wow"
+    old_readme_path1 = tmp_path / "README"
+    old_readme_path2 = tmp_path / "readme.txt"
+    with old_readme_path1.open("w") as fd:
+        fd.write(old_readme_text1)
+    assert old_readme_path1.exists()
+    with old_readme_path2.open("w") as fd:
+        fd.write(old_readme_text2)
+    assert old_readme_path2.exists()
+    path, old_paths = add_readme_file(str(tmp_path), "test_name")
     assert path.exists()
     assert path.parent == tmp_path
     assert path.name == "README.md"
-    assert old_path == old_readme_path
-    assert not old_path.exists()
+    assert old_paths[0] == old_readme_path1
+    assert old_paths[1] == old_readme_path2
+    assert not old_readme_path1.exists()
+    assert not old_readme_path2.exists()
     with path.open("r") as fd:
         contents = fd.read()
     assert "test_name" in contents
     assert "EPICS IOC" in contents
-    assert "Original README" in contents
-    assert old_readme_text in contents
+    assert "Original" in contents
+    assert old_readme_text1 in contents
+    assert old_readme_text2 in contents
+    assert "# README" in contents
+    assert "# readme.txt" in contents
