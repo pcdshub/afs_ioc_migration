@@ -1,6 +1,9 @@
+from os import remove
 from pathlib import Path
 from shutil import copy, copytree
 from typing import Any, Callable
+
+import jinja2
 
 
 def add_file(
@@ -40,3 +43,53 @@ def add_github_folder(cloned_path: str) -> Path:
         dest_name=".github",
         copy_func=copytree,
     )
+
+
+def add_readme_file(cloned_path: str, repo_name: str) -> tuple[Path, Path | None]:
+    """
+    Create a standard README.md.
+
+    The contents of the readme will be:
+    - Title with the repo name
+    - Explanation that this is an EPICS IOC used at LCLS
+    - The original contents of an existing readme in the repo.
+
+    See also readme_template.md for the template used.
+
+    Returns a tuple of the new file and the removed file, if any.
+    If no file was removed, the second tuple element will be None.
+    """
+    dst_path = Path(cloned_path) / "README.md"
+
+    if dst_path.exists():
+        raise RuntimeError(f"{dst_path} already exists.")
+
+    # Find at most one other existing readme-like file to include
+    original_readme = ""
+    original_path = None
+    for path in Path(cloned_path).glob("*readme*", case_sensitive=False):
+        # Should either be one result or zero
+        with path.open("r") as fd:
+            original_readme += fd.read()
+        original_path = path
+
+    jinja_loader = jinja2.FileSystemLoader(Path(__file__).parent)
+    jinja_env = jinja2.Environment(
+        loader=jinja_loader,
+        trim_blocks=True,
+        lstrip_blocks=True,
+    )
+    template = jinja_env.get_template("readme_template.md")
+    output_text = template.render(
+        repo_name=repo_name,
+        original_readme=original_readme,
+    )
+
+    with dst_path.open("w") as fd:
+        fd.write(output_text)
+
+    if original_path is None:
+        return dst_path, None
+    else:
+        remove(original_path)
+        return dst_path, original_path
