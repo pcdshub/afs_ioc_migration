@@ -68,6 +68,7 @@ def migrate_repo(afs_path: str) -> None:
         gh.repos.create_in_org(
             org=ORG,
             name=info.name,
+            visibility="internal",
             custom_properties={
                 "type": "EPICS IOC",
                 "protect_default": "true",
@@ -85,6 +86,7 @@ def migrate_repo(afs_path: str) -> None:
         names=[
             "epics",
             "epics-ioc",
+            f"ecs-epics-ioc-{info.area}",
         ],
     )
 
@@ -96,6 +98,7 @@ def migrate_repo(afs_path: str) -> None:
         fetch_info = afs_remote.fetch(
             ["*:refs/remotes/afs_remote/*", "refs/tags/*:refs/tags/*"]
         )
+        print("Checking out HEAD as master")
         afs_head = repo.create_head("master", afs_remote.refs.HEAD)
         afs_head.checkout()
 
@@ -104,7 +107,7 @@ def migrate_repo(afs_path: str) -> None:
         # The head is now named "master" locally,
         # regardless of whichever strange name it may have upstream.
 
-        # Make and commit systemic modifications (.gitignore, license, maybe others)
+        # Make and commit systemic modifications (.gitignore, license, others)
         print("Adding license file")
         license = add_license_file(cloned_path=path)
         commit(repo, license, "MAINT: adding standard license file")
@@ -120,14 +123,13 @@ def migrate_repo(afs_path: str) -> None:
             repo.index.remove([str(old_readme)])
         commit(repo, new_readme, "MAINT: update readme")
 
+        # Time to push everything
         # Create a same-named head for every single branch on the afs remote
         for fetch in fetch_info:
             if "afs_remote/refs/heads" in fetch.name:
                 print(f"Found branch named {fetch.remote_ref_path}")
                 repo.create_head(str(fetch.remote_ref_path), fetch.ref)
-
-        # Push all the heads and all the tags!
-        print("Pushing all branches to github")
+        print("Pushing all branches and tags to github")
         github_remote = repo.create_remote(name="github_remote", url=info.github_ssh)
         github_remote.push("*")
 

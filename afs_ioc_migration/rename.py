@@ -16,6 +16,7 @@ class RepoInfo:
     github_url: str
     github_ssh: str
     afs_source: str
+    area: str
 
     @classmethod
     def from_afs(cls: type[T], afs_source: str) -> T:
@@ -23,6 +24,7 @@ class RepoInfo:
         Create a RepoInfo instance given the pull path to the afs source.
         """
         name = rename(afs_source)
+        area = name.split("-")[1]
         github_url = f"https://github.com/{ORG}/{name}.git"
         github_ssh = f"git@github.com:{ORG}/{name}.git"
         return cls(
@@ -30,6 +32,7 @@ class RepoInfo:
             github_url=github_url,
             github_ssh=github_ssh,
             afs_source=afs_source,
+            area=area,
         )
 
 
