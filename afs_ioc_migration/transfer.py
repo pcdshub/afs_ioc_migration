@@ -14,6 +14,18 @@ class RepoExistsError(RuntimeError): ...
 
 
 def migrate_repo(afs_path: str) -> None:
+    """
+    Migrate an afs directory repo to pcdshub.
+
+    Requires you set the $GITHUB_TOKEN environment
+    variable to a fine-grained access token with
+    the following permissions:
+
+    - Administration: read and write
+    - Contents: read and write
+    - Custom properties: read and write
+    - Metadata: read-only
+    """
     # Lock the afs repo if it isn't locked
     print(f"Locking afs repo {afs_path}...")
     try:
@@ -30,7 +42,7 @@ def migrate_repo(afs_path: str) -> None:
     gh = GhApi()
     print(f"Checking for existing repo commits at {info.github_url}")
     try:
-        gh.repos.get_commits(ORG, info.name)
+        gh.repos.list_commits(ORG, info.name)
     except HTTP4xxClientError as exc:
         if exc.code == 404:
             print(f"Repo {info.github_url} does not exist, continuing.")
@@ -49,56 +61,63 @@ def migrate_repo(afs_path: str) -> None:
         )
 
     # Create the blank repo if needed
-    if not repo_exists:
+    if repo_exists:
+        print("Repo already exists, skipping creation.")
+    else:
         print(f"Creating repository at {info.github_url}")
         gh.repos.create_in_org(
             org=ORG,
             name=info.name,
             custom_properties={
-                "repo_type": "EPICS IOC",
-                "default": True,
-                "master": True,
-                "gh_pages": False,
-                "status_checks": None,
+                "type": "EPICS IOC",
+                "protect_default": "true",
+                "protect_master": "true",
+                "protect_gh_pages": "false",
+                "required_checks": "None",
             },
         )
 
     # Set repo topics
+    print("Setting standard repo topics")
     gh.repos.replace_all_topics(
         owner=ORG,
         repo=info.name,
         names=[
-            "EPICS",
-            "IOC",
-            "SLAC",
-            "LCLS",
+            "epics",
+            "ioc",
+            "slac",
+            "lcls",
         ],
     )
 
-    # Clone from afs to a temporary directory
-    with TemporaryDirectory() as dir:
-        print(f"Cloning from {afs_path}")
-        repo = Repo.init(path=dir, mkdir=False)
+    with TemporaryDirectory() as path:
+        # Clone from afs to a temporary directory
+        print(f"Cloning from {afs_path} to {path}")
+        repo = Repo.init(path=path, mkdir=False)
         afs_remote = repo.create_remote(name="afs_remote", url=afs_path)
-        afs_remote.fetch()
-        afs_head = repo.create_head("afs_head", afs_remote.refs.afs_remote)
+        afs_remote.fetch(["*:refs/remotes/afs_remote/*", "refs/tags/*:refs/tags/*"])
+        afs_head = repo.create_head("master", afs_remote.refs.HEAD)
         afs_head.checkout()
+        # At this point, we have all branches and tags fetched.
+        # The working directory is currently even with afs's head
+        # The head is now named "master" locally,
+        # regardless of whichever strange name it may have upstream.
 
         # Make and commit systemic modifications (.gitignore, license, maybe others)
         print("Adding license file")
-        license = add_license_file(cloned_path=dir)
+        license = add_license_file(cloned_path=path)
         commit(repo, license, "MAINT: adding standard license file")
         print("Adding gitignore")
-        gitignore = add_gitignore(cloned_path=dir)
+        gitignore = add_gitignore(cloned_path=path)
         commit(repo, gitignore, "MAINT: adding standard gitignore")
         print("Adding github templates")
-        github_templates = add_github_folder(cloned_path=dir)
+        github_templates = add_github_folder(cloned_path=path)
         commit(repo, github_templates, "MAINT: add github templates")
 
         # Push to the blank repo
         print("Pushing repo to github")
         github_remote = repo.create_remote(name="github_remote", url=info.github_ssh)
-        github_remote.push()
+        github_remote.push("*:*")
 
 
 def commit(repo: Repo, path: Path, msg: str) -> None:
