@@ -84,20 +84,21 @@ def migrate_repo(afs_path: str) -> None:
         repo=info.name,
         names=[
             "epics",
-            "ioc",
-            "slac",
-            "lcls",
+            "epics-ioc",
         ],
     )
 
     with TemporaryDirectory() as path:
         # Clone from afs to a temporary directory
-        print(f"Cloning from {afs_path} to {path}")
+        print(f"Cloning HEAD from {afs_path} to {path} as master")
         repo = Repo.init(path=path, mkdir=False)
         afs_remote = repo.create_remote(name="afs_remote", url=afs_path)
-        afs_remote.fetch(["*:refs/remotes/afs_remote/*", "refs/tags/*:refs/tags/*"])
+        fetch_info = afs_remote.fetch(
+            ["*:refs/remotes/afs_remote/*", "refs/tags/*:refs/tags/*"]
+        )
         afs_head = repo.create_head("master", afs_remote.refs.HEAD)
         afs_head.checkout()
+
         # At this point, we have all branches and tags fetched.
         # The working directory is currently even with afs's head
         # The head is now named "master" locally,
@@ -114,10 +115,16 @@ def migrate_repo(afs_path: str) -> None:
         github_templates = add_github_folder(cloned_path=path)
         commit(repo, github_templates, "MAINT: add github templates")
 
-        # Push to the blank repo
-        print("Pushing repo to github")
+        # Create a same-named head for every single branch on the afs remote
+        for fetch in fetch_info:
+            if "afs_remote/refs/heads" in fetch.name:
+                print(f"Found branch named {fetch.remote_ref_path}")
+                repo.create_head(str(fetch.remote_ref_path), fetch.ref)
+
+        # Push all the heads and all the tags!
+        print("Pushing all branches to github")
         github_remote = repo.create_remote(name="github_remote", url=info.github_ssh)
-        github_remote.push("*:*")
+        github_remote.push("*")
 
 
 def commit(repo: Repo, path: Path, msg: str) -> None:
