@@ -103,7 +103,7 @@ def migrate_repo(afs_path: str, dry_run: bool) -> None:
 
     with TemporaryDirectory() as path:
         if dry_run:
-            top_path = Path("afs_ioc_migration_dry_run") / info.name
+            top_path = Path("afs_ioc_migration_dry_run")
             top_path.mkdir(exist_ok=True)
             path = top_path / info.name
             path.mkdir(exist_ok=False)

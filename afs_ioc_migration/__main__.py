@@ -3,6 +3,7 @@ import dataclasses
 import glob
 import logging
 import sys
+from typing import Iterable
 
 from .transfer import migrate_repo
 
@@ -13,7 +14,8 @@ logger = logging.getLogger("afs_ioc_migration")
 class MainArgs:
     stop_on_error: bool = False
     dry_run: bool = False
-    paths: tuple[str, ...] = ()
+    verbose: bool = False
+    paths: Iterable[str] = ()
 
 
 parser = argparse.ArgumentParser("afs_ioc_migration")
@@ -28,10 +30,15 @@ parser.add_argument(
     help="If provided, we won't make any real changes to the afs or github areas, and we'll prepare the repo clones in the user's current directory for inspection.",
 )
 parser.add_argument(
+    "--verbose",
+    "-v",
+    action="store_true",
+    help="Show additional debug statements",
+)
+parser.add_argument(
     "paths",
     action="store",
     nargs="+",
-    type=tuple,
     help="Paths to the .git file bare repositories to migrate. Accepts specific filenames and globs.",
 )
 
@@ -55,4 +62,8 @@ def main(args: MainArgs) -> int:
 if __name__ == "__main__":
     args = MainArgs()
     parser.parse_args(namespace=args)
+    if args.verbose:
+        logging.basicConfig(level=logging.DEBUG)
+    else:
+        logging.basicConfig(level=logging.INFO)
     sys.exit(main(args))

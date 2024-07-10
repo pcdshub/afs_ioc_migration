@@ -25,6 +25,5 @@ fi
 
 REPO_ROOT="$(realpath "${THIS_DIR}"/../..)"
 export PYTHONPATH="${REPO_ROOT}:${PYTHONPATH}"
-echo $PYTHONPATH
 
-python -c "from afs_ioc_migration.transfer import migrate_repo; migrate_repo('${TARGET_REPO}')"
+python -m afs_ioc_migration $@ "${TARGET_REPO}"
