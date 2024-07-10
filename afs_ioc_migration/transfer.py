@@ -107,7 +107,7 @@ def migrate_repo(afs_path: str, dry_run: bool) -> None:
             top_path.mkdir(exist_ok=True)
             path = top_path / info.name
             path.mkdir(exist_ok=False)
-            logger.info("Dry run: create repo in cwd at {path}")
+            logger.info(f"Dry run: create repo in cwd at {path}")
         # Clone from afs to a temporary directory
         logger.info(f"Cloning HEAD from {afs_path} to {path} as master")
         repo = Repo.init(path=path, mkdir=False)
