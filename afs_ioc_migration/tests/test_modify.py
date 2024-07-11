@@ -3,6 +3,14 @@ from pathlib import Path
 import pytest
 
 from ..modify import add_github_folder, add_gitignore, add_license_file, add_readme_file
+from ..rename import RepoInfo
+
+
+@pytest.fixture(scope="function")
+def repo_info() -> RepoInfo:
+    return RepoInfo.from_afs(
+        afs_source="/fake/path/ioc/tst/pytester.git", org="pcdshub"
+    )
 
 
 def test_add_license_file(tmp_path: Path):
@@ -43,26 +51,27 @@ def test_add_github_folder(tmp_path: Path):
         assert actual_contents == expected_contents
 
 
-def test_add_readme_file_none_existing(tmp_path: Path):
-    path, _ = add_readme_file(str(tmp_path), "test_name")
+def test_add_readme_file_none_existing(tmp_path: Path, repo_info: RepoInfo):
+    path, _ = add_readme_file(str(tmp_path), repo_info)
     assert path.exists()
     assert path.parent == tmp_path
     assert path.name == "README.md"
     with path.open("r") as fd:
         contents = fd.read()
-    assert "test_name" in contents
+    assert repo_info.name in contents
+    assert repo_info.afs_source in contents
     assert "EPICS IOC" in contents
     assert "Original" not in contents
 
 
-def test_add_readme_file_already_existing(tmp_path: Path):
+def test_add_readme_file_already_existing(tmp_path: Path, repo_info: RepoInfo):
     with (tmp_path / "README.md").open("w") as fd:
         fd.write("words")
     with pytest.raises(RuntimeError):
-        add_readme_file(str(tmp_path), "test_name")
+        add_readme_file(str(tmp_path), repo_info)
 
 
-def test_add_readme_file_include_old(tmp_path: Path):
+def test_add_readme_file_include_old(tmp_path: Path, repo_info: RepoInfo):
     old_readme_text1 = "very unique test text will not collide"
     old_readme_text2 = "another very unique test text wow"
     old_readme_path1 = tmp_path / "README"
@@ -73,7 +82,7 @@ def test_add_readme_file_include_old(tmp_path: Path):
     with old_readme_path2.open("w") as fd:
         fd.write(old_readme_text2)
     assert old_readme_path2.exists()
-    path, old_paths = add_readme_file(str(tmp_path), "test_name")
+    path, old_paths = add_readme_file(str(tmp_path), repo_info)
     assert path.exists()
     assert path.parent == tmp_path
     assert path.name == "README.md"
@@ -83,8 +92,8 @@ def test_add_readme_file_include_old(tmp_path: Path):
     assert not old_readme_path2.exists()
     with path.open("r") as fd:
         contents = fd.read()
-    assert "test_name" in contents
-    assert "EPICS IOC" in contents
+    assert repo_info.name in contents
+    assert repo_info.afs_source in contents
     assert "Original" in contents
     assert old_readme_text1 in contents
     assert old_readme_text2 in contents

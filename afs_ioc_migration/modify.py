@@ -5,6 +5,8 @@ from typing import Any, Callable
 
 import jinja2
 
+from .rename import RepoInfo
+
 
 def add_file(
     cloned_path: str,
@@ -45,7 +47,7 @@ def add_github_folder(cloned_path: str) -> Path:
     )
 
 
-def add_readme_file(cloned_path: str, repo_name: str) -> tuple[Path, list[Path]]:
+def add_readme_file(cloned_path: str, repo_info: RepoInfo) -> tuple[Path, list[Path]]:
     """
     Create a standard README.md.
 
@@ -82,7 +84,7 @@ def add_readme_file(cloned_path: str, repo_name: str) -> tuple[Path, list[Path]]
     )
     template = jinja_env.get_template("readme_template.md")
     output_text = template.render(
-        repo_name=repo_name,
+        repo_info=repo_info,
         original_readme_info=list(
             zip([path.name for path in original_paths], original_readmes)
         ),
