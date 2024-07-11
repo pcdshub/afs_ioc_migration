@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
@@ -16,7 +17,7 @@ logger = logging.getLogger(__name__)
 class RepoExistsError(RuntimeError): ...
 
 
-def migrate_repo(afs_path: str, org: str, dry_run: bool) -> None:
+def migrate_repo(afs_path: str, org: str, dry_run: bool, dry_run_dir: str = "") -> str:
     """
     Migrate an afs directory repo to pcdshub.
 
@@ -101,13 +102,19 @@ def migrate_repo(afs_path: str, org: str, dry_run: bool) -> None:
             ],
         )
 
-    with TemporaryDirectory() as path:
-        if dry_run:
-            top_path = Path("dry_run_afs_ioc_migration").resolve()
-            top_path.mkdir(exist_ok=True)
-            path = top_path / info.name
-            path.mkdir(exist_ok=False)
-            logger.info(f"Dry run: create repo in cwd at {path}")
+    tmpdir_args = {}
+    if dry_run:
+        tmpdir_args["delete"] = False
+        tmpdir_args["prefix"] = info.name
+        if dry_run_dir:
+            path_name = dry_run_dir
+        else:
+            path_name = "dry_run_transfer"
+        tmpdir_args["dir"] = str(Path(path_name).resolve())
+        logger.info(f"Dry run: create repo in {tmpdir_args['dir']}")
+
+    # Context manager to remove temp dir after usage
+    with TemporaryDirectory(**tmpdir_args) as path:
         # Clone from afs to a temporary directory
         logger.info(f"Cloning HEAD from {afs_path} to {path} as master")
         repo = Repo.init(path=path, mkdir=False)
@@ -135,7 +142,7 @@ def migrate_repo(afs_path: str, org: str, dry_run: bool) -> None:
         github_templates = add_github_folder(cloned_path=path)
         commit(repo, github_templates, "MAINT: add github templates")
         logger.info("Updating readme")
-        new_readme, old_readmes = add_readme_file(cloned_path=path, repo_name=info.name)
+        new_readme, old_readmes = add_readme_file(cloned_path=path, repo_info=info)
         if old_readmes:
             repo.index.remove([str(p) for p in old_readmes])
         commit(repo, new_readme, "MAINT: update readme")
@@ -154,6 +161,8 @@ def migrate_repo(afs_path: str, org: str, dry_run: bool) -> None:
                 name="github_remote", url=info.github_ssh
             )
             github_remote.push("*")
+
+    return path
 
 
 def commit(repo: Repo, path: Path, msg: str) -> None:
