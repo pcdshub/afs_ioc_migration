@@ -1,4 +1,4 @@
-# EPICS ignores
+# Built file ignores
 O.*
 archive
 autosave
@@ -7,6 +7,10 @@ build
 db
 dbd
 envPaths
+html
+include
+lib
+*.log
 
 # Terminal editor ignores
 *.swp
