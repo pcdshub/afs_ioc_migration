@@ -3,7 +3,6 @@ import os.path
 import typing
 
 T = typing.TypeVar("T")
-ORG = "pcdshub"
 
 
 @dataclasses.dataclass(frozen=True)
@@ -19,14 +18,14 @@ class RepoInfo:
     area: str
 
     @classmethod
-    def from_afs(cls: type[T], afs_source: str) -> T:
+    def from_afs(cls: type[T], afs_source: str, org: str) -> T:
         """
         Create a RepoInfo instance given the pull path to the afs source.
         """
         name = rename(afs_source)
         area = name.split("-")[1]
-        github_url = f"https://github.com/{ORG}/{name}.git"
-        github_ssh = f"git@github.com:{ORG}/{name}.git"
+        github_url = f"https://github.com/{org}/{name}.git"
+        github_ssh = f"git@github.com:{org}/{name}.git"
         return cls(
             name=name,
             github_url=github_url,

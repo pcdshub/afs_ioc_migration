@@ -44,31 +44,31 @@ def fake_already_done_repo(fake_ready_repo: Path) -> Path:
 def test_hook_installed(fake_ready_repo: Path):
     expected_hooks = fake_ready_repo / "hooks" / "pre-recieve"
     assert not expected_hooks.exists()
-    lock_file_repo(str(fake_ready_repo))
+    lock_file_repo(path=str(fake_ready_repo), org="pcdshub")
     assert expected_hooks.is_file()
 
 
 def test_hook_invalid(fake_not_a_repo: Path):
     with pytest.raises(ValueError):
-        lock_file_repo(str(fake_not_a_repo))
+        lock_file_repo(path=str(fake_not_a_repo), org="pcdshub")
 
 
 def test_hook_already_done(fake_already_done_repo: Path):
     expected_hooks = fake_already_done_repo / "hooks" / "pre-recieve"
     assert expected_hooks.exists()
     with pytest.raises(AlreadyLockedError):
-        lock_file_repo(str(fake_already_done_repo))
+        lock_file_repo(path=str(fake_already_done_repo), org="pcdshub")
 
 
 def test_hook_script(fake_ready_repo: Path):
-    lock_file_repo(str(fake_ready_repo))
+    lock_file_repo(path=str(fake_ready_repo), org="pcdshub")
     completed_proc = subprocess.run(
         [str(fake_ready_repo / "hooks" / "pre-recieve")],
         universal_newlines=True,
         capture_output=True,
     )
     assert completed_proc.returncode == 1
-    repo_info = RepoInfo.from_afs(str(fake_ready_repo))
+    repo_info = RepoInfo.from_afs(str(fake_ready_repo), org="pcdshub")
     assert repo_info.name in completed_proc.stdout
     assert repo_info.github_ssh in completed_proc.stdout
     assert repo_info.github_url in completed_proc.stdout

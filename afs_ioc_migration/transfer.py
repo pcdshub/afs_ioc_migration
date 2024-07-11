@@ -8,7 +8,7 @@ from git import Repo
 
 from .lock_repo import AlreadyLockedError, lock_file_repo
 from .modify import add_github_folder, add_gitignore, add_license_file, add_readme_file
-from .rename import ORG, RepoInfo
+from .rename import RepoInfo
 
 logger = logging.getLogger(__name__)
 
@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class RepoExistsError(RuntimeError): ...
 
 
-def migrate_repo(afs_path: str, dry_run: bool) -> None:
+def migrate_repo(afs_path: str, org: str, dry_run: bool) -> None:
     """
     Migrate an afs directory repo to pcdshub.
 
@@ -35,20 +35,20 @@ def migrate_repo(afs_path: str, dry_run: bool) -> None:
     else:
         logger.info(f"Locking afs repo {afs_path}...")
         try:
-            lock_file_repo(afs_path)
+            lock_file_repo(path=afs_path, org=org)
         except AlreadyLockedError:
             logger.info(f"{afs_path} is already locked, continuing.")
         else:
             logger.info(f"{afs_path} has been locked, continuing.")
 
     # Get the new name and other info
-    info = RepoInfo.from_afs(afs_source=afs_path)
+    info = RepoInfo.from_afs(afs_source=afs_path, org=org)
 
     # Check if the repo is already on github and if it has commits
     gh = GhApi()
     logger.info(f"Checking for existing repo commits at {info.github_url}")
     try:
-        gh.repos.list_commits(ORG, info.name)
+        gh.repos.list_commits(org, info.name)
     except HTTP4xxClientError as exc:
         if exc.code == 404:
             logger.info(f"Repo {info.github_url} does not exist, continuing.")
@@ -74,7 +74,7 @@ def migrate_repo(afs_path: str, dry_run: bool) -> None:
     else:
         logger.info(f"Creating repository at {info.github_url}")
         gh.repos.create_in_org(
-            org=ORG,
+            org=org,
             name=info.name,
             visibility="internal",
             custom_properties={
@@ -92,7 +92,7 @@ def migrate_repo(afs_path: str, dry_run: bool) -> None:
     else:
         logger.info("Setting standard repo topics")
         gh.repos.replace_all_topics(
-            owner=ORG,
+            owner=org,
             repo=info.name,
             names=[
                 "epics",

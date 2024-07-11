@@ -6,14 +6,14 @@ from .rename import RepoInfo
 class AlreadyLockedError(RuntimeError): ...
 
 
-def lock_file_repo(path: str) -> None:
+def lock_file_repo(path: str, org: str) -> None:
     """
     Add a pre-recieve hook to a filepath repo to prevent further pushes.
 
     The intention is to run this prior to the migration so that no new
     changes are introduced during the move to github.
     """
-    repo_info = RepoInfo.from_afs(path)
+    repo_info = RepoInfo.from_afs(afs_source=path, org=org)
     hooks_dir = Path(repo_info.afs_source) / "hooks"
     if not hooks_dir.is_dir():
         raise ValueError(

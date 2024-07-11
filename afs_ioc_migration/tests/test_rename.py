@@ -44,9 +44,10 @@ def test_rename(old: str, new: str | type[Exception]):
 def test_repo_info():
     afs_source = "/afs/slac/g/cd/swe/git/repos/package/epics/ioc/common/ims.git"
 
-    assert RepoInfo.from_afs(afs_source) == RepoInfo(
+    assert RepoInfo.from_afs(afs_source=afs_source, org="pcdshub") == RepoInfo(
         name="ioc-common-ims",
         github_url="https://github.com/pcdshub/ioc-common-ims.git",
         github_ssh="git@github.com:pcdshub/ioc-common-ims.git",
         afs_source=afs_source,
+        area="common",
     )

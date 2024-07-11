@@ -12,13 +12,23 @@ logger = logging.getLogger("afs_ioc_migration")
 
 @dataclasses.dataclass
 class MainArgs:
+    org: str = ""
     stop_on_error: bool = False
     dry_run: bool = False
     verbose: bool = False
     paths: Iterable[str] = ()
 
 
-parser = argparse.ArgumentParser("afs_ioc_migration")
+parser = argparse.ArgumentParser(
+    "afs_ioc_migration",
+    description="Migrate afs filesystem EPICS IOC repositories to GitHub.",
+)
+parser.add_argument(
+    "--org",
+    action="store",
+    default="pcdshub",
+    help="The name of the github organization to migrate repositories to.",
+)
 parser.add_argument(
     "--stop-on-error",
     action="store_true",
@@ -47,9 +57,11 @@ def main(args: MainArgs) -> int:
     n_errors = 0
     for user_glob in args.paths:
         for user_path in glob.glob(user_glob):
-            logger.info(f"Migrating {user_path} with dry_run={args.dry_run}")
+            logger.info(
+                f"Migrating {user_path} to org={args.org} with dry_run={args.dry_run}"
+            )
             try:
-                migrate_repo(afs_path=user_path, dry_run=args.dry_run)
+                migrate_repo(afs_path=user_path, org=args.org, dry_run=args.dry_run)
             except Exception:
                 if args.stop_on_error:
                     raise
