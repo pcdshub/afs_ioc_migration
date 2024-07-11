@@ -29,12 +29,37 @@ def add_license_file(cloned_path: str) -> Path:
 
 
 def add_gitignore(cloned_path: str) -> Path:
-    """Add a standard EPICS IOC gitignore to the repo."""
-    return add_file(
-        cloned_path=cloned_path,
-        source_name="sample_gitignore.txt",
-        dest_name=".gitignore",
-    )
+    """
+    Add a standard EPICS IOC gitignore to the repo.
+
+    If no such file already exists, add ours as-is.
+    If a gitignore already exists, incorporate it into ours
+    by adding any unique extra elements to the end in a
+    labelled section.
+    """
+    target_path = Path(cloned_path) / ".gitignore"
+    if not target_path.exists():
+        return add_file(
+            cloned_path=cloned_path,
+            source_name="sample_gitignore.txt",
+            dest_name=".gitignore",
+        )
+    with target_path.open("r") as fd:
+        orig_gitignore = fd.read().splitlines()
+    src_path = Path(__file__).parent / "sample_gitignore.txt"
+    with src_path.open("r") as fd:
+        new_gitignore = fd.read().splitlines()
+
+    lines_to_add = [line for line in orig_gitignore if line not in new_gitignore]
+    if lines_to_add:
+        new_gitignore.append("")
+        new_gitignore.append("# From original afs gitignore")
+        new_gitignore.extend(lines_to_add)
+
+    with target_path.open("w") as fd:
+        fd.write("\n".join(new_gitignore))
+
+    return target_path
 
 
 def add_github_folder(cloned_path: str) -> Path:

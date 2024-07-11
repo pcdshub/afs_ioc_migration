@@ -37,6 +37,22 @@ def test_add_gitignore(tmp_path: Path):
     assert actual_contents == expected_contents
 
 
+def test_add_gitignore_to_existing(tmp_path: Path):
+    with (tmp_path / ".gitignore").open("w") as fd:
+        fd.write("db\ndbd\ncats")
+    path = add_gitignore(str(tmp_path))
+    assert path.exists()
+    assert path.parent == tmp_path
+    assert path.name == ".gitignore"
+    with (Path(__file__).parent.parent / "sample_gitignore.txt").open("r") as fd:
+        template_lines = fd.read().splitlines()
+    with path.open("r") as fd:
+        result_lines = fd.read().splitlines()
+    for line in template_lines:
+        assert line in result_lines
+    assert "cats" in result_lines
+
+
 def test_add_github_folder(tmp_path: Path):
     path = add_github_folder(str(tmp_path))
     assert path.exists()
