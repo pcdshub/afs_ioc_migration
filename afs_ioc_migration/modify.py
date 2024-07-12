@@ -57,7 +57,7 @@ def add_gitignore(cloned_path: str) -> Path:
         new_gitignore.extend(lines_to_add)
 
     with target_path.open("w") as fd:
-        fd.write("\n".join(new_gitignore))
+        fd.write("\n".join(new_gitignore) + "\n")
 
     return target_path
 
