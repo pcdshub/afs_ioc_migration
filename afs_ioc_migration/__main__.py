@@ -3,6 +3,7 @@ import dataclasses
 import glob
 import logging
 import sys
+import time
 from typing import Iterable
 
 from .transfer import migrate_repo
@@ -54,9 +55,19 @@ parser.add_argument(
 
 
 def main(args: MainArgs) -> int:
+    first_loop = True
     n_errors = 0
     for user_glob in args.paths:
         for user_path in glob.glob(user_glob):
+            if first_loop:
+                first_loop = False
+            else:
+                # Slightly pace out the migrations to help avoid API rate limits
+                # Github recommends waiting 1s between mutative requests
+                # We make 2 mutative requests per call (create repo, replace topics)
+                # So, we sleep 2 seconds
+                logger.debug("Sleeping 2s to avoid rate limits")
+                time.sleep(2)
             logger.info(
                 f"Migrating {user_path} to org={args.org} with dry_run={args.dry_run}"
             )
@@ -68,6 +79,7 @@ def main(args: MainArgs) -> int:
                 else:
                     logger.exception(f"Exception while transferring {user_path}")
                 n_errors += 1
+
     return n_errors
 
 
