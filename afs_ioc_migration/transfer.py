@@ -66,9 +66,13 @@ def migrate_repo(afs_path: str, org: str, dry_run: bool, dry_run_dir: str = "") 
             # Some unknown 4xx http error
             raise
     else:
-        raise RepoExistsError(
-            f"Repo {info.github_url} exists and has commits, aborting."
-        )
+        if dry_run:
+            logger.warning("Dry run: repo already exists! Continuing...")
+            repo_exists = True
+        else:
+            raise RepoExistsError(
+                f"Repo {info.github_url} exists and has commits, aborting."
+            )
 
     # Create the blank repo if needed
     if repo_exists:
