@@ -10,3 +10,4 @@ build
 .ruff_cache
 
 test_transfer
+dry_run_transfer
