@@ -30,6 +30,9 @@ def migrate_repo(afs_path: str, org: str, dry_run: bool, dry_run_dir: str = "") 
     - Custom properties: read and write
     - Metadata: read-only
     """
+    # Force afs_path to be an absolute path to avoid issues later
+    afs_path = str(Path(afs_path).resolve())
+
     # Lock the afs repo if it isn't locked
     if dry_run:
         logger.info(f"Dry run: skip locking {afs_path}")
@@ -105,12 +108,14 @@ def migrate_repo(afs_path: str, org: str, dry_run: bool, dry_run_dir: str = "") 
     tmpdir_args = {}
     if dry_run:
         tmpdir_args["delete"] = False
-        tmpdir_args["prefix"] = info.name
+        tmpdir_args["prefix"] = f"{info.name}_"
         if dry_run_dir:
             path_name = dry_run_dir
         else:
             path_name = "dry_run_transfer"
-        tmpdir_args["dir"] = str(Path(path_name).resolve())
+        path_obj = Path(path_name).resolve()
+        path_obj.mkdir(exist_ok=True)
+        tmpdir_args["dir"] = str(path_obj)
         logger.info(f"Dry run: create repo in {tmpdir_args['dir']}")
 
     # Context manager to remove temp dir after usage
