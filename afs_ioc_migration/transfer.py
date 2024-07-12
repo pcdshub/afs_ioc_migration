@@ -33,6 +33,9 @@ def migrate_repo(afs_path: str, org: str, dry_run: bool, dry_run_dir: str = "") 
     # Force afs_path to be an absolute path to avoid issues later
     afs_path = str(Path(afs_path).resolve())
 
+    # Get the new name and other info, or error out now if we shouldn't migrate
+    info = RepoInfo.from_afs(afs_source=afs_path, org=org)
+
     # Lock the afs repo if it isn't locked
     if dry_run:
         logger.info(f"Dry run: skip locking {afs_path}")
@@ -44,9 +47,6 @@ def migrate_repo(afs_path: str, org: str, dry_run: bool, dry_run_dir: str = "") 
             logger.info(f"{afs_path} is already locked, continuing.")
         else:
             logger.info(f"{afs_path} has been locked, continuing.")
-
-    # Get the new name and other info
-    info = RepoInfo.from_afs(afs_source=afs_path, org=org)
 
     # Check if the repo is already on github and if it has commits
     gh = GhApi()
