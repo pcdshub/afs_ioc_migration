@@ -1,4 +1,5 @@
 from pathlib import Path
+from shutil import copy
 
 from .rename import RepoInfo
 
@@ -19,11 +20,6 @@ def lock_file_repo(path: str, org: str) -> None:
         raise ValueError(
             f"{path} is not a valid git repo, it has no hooks subdirectory."
         )
-    pre_receive_path = hooks_dir / "pre-receive"
-    if pre_receive_path.exists():
-        raise AlreadyLockedError(
-            f"There is already a pre-receive hook at {pre_receive_path}."
-        )
 
     template_path = Path(__file__).parent / "hook_template.txt"
     with template_path.open("r") as fd:
@@ -35,6 +31,22 @@ def lock_file_repo(path: str, org: str) -> None:
         github_ssh=repo_info.github_ssh,
         afs_source=repo_info.afs_source,
     )
+
+    pre_receive_path = hooks_dir / "pre-receive"
+    if pre_receive_path.exists():
+        with pre_receive_path.open("r") as fd:
+            existing = fd.read()
+        if filled_hooks == existing:
+            raise AlreadyLockedError(
+                f"There is already our pre-receive hook at {pre_receive_path}."
+            )
+        else:
+            # Find an available backup name
+            for index in range(99):
+                backup_path = hooks_dir / f"pre-receive.bak.{index}"
+                if not backup_path.exists():
+                    copy(pre_receive_path, backup_path)
+                    break
 
     with pre_receive_path.open("w") as fd:
         fd.write(filled_hooks)
