@@ -1,3 +1,4 @@
+import platform
 import subprocess
 from pathlib import Path
 
@@ -8,9 +9,19 @@ def test_transfer_dry_run(tmp_path: Path):
     # Basic setup: an afs-ioc-like repo with one commit
     afs_path = tmp_path / "ioc" / "tst" / "dry_run"
     src_path = tmp_path / "repo"
+
     subprocess.run(["git", "init", str(src_path)])
     subprocess.run(["touch", str(src_path / "some_file.txt")])
     subprocess.run(["git", "add", "some_file.txt"], cwd=str(src_path))
+    try:
+        subprocess.run(["git", "config", "--get", "user.name"])
+    except subprocess.CalledProcessError:
+        # Set a local username for the test commit, for example on CI
+        subprocess.run(["git", "config", "user.name", "pytest"], cwd=str(src_path))
+        subprocess.run(
+            ["git", "config", "user.email", f"pytest@{platform.node()}"],
+            cwd=str(src_path),
+        )
     subprocess.run(["git", "commit", "-m", "Initial commit"], cwd=str(src_path))
     subprocess.run(["git", "clone", "--bare", str(src_path), str(afs_path)])
 
