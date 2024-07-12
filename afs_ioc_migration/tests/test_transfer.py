@@ -8,10 +8,14 @@ from ..transfer import migrate_repo
 
 def test_transfer_dry_run(tmp_path: Path):
     try:
-        subprocess.run(["git", "config", "--get", "user.name"])
-        subprocess.run(["git", "config", "--get", "user.email"])
+        user = subprocess.check_output(["git", "config", "--get", "user.name"])
+        email = subprocess.check_output(["git", "config", "--get", "user.email"])
+        ok = user and email
     except subprocess.CalledProcessError:
-        pytest.xfail(reason="git user.name and user.email not configured")
+        ok = False
+    if not ok:
+        pytest.xfail(reason="git user.name or user.email not configured")
+
     # Basic setup: an afs-ioc-like repo with one commit
     afs_path = tmp_path / "ioc" / "tst" / "dry_run"
     src_path = tmp_path / "repo"
