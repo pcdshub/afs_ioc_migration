@@ -46,6 +46,10 @@ def add_gitignore(cloned_path: str) -> Path:
         )
     with target_path.open("r") as fd:
         orig_gitignore = fd.read().splitlines()
+    # Leading and trailing directory slashes don't do anything except
+    # make it harder to match existing entries in gitignore.
+    orig_gitignore = [line.strip("/") for line in orig_gitignore]
+
     src_path = Path(__file__).parent / "sample_gitignore.txt"
     with src_path.open("r") as fd:
         new_gitignore = fd.read().splitlines()
