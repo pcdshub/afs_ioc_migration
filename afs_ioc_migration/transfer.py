@@ -74,41 +74,6 @@ def migrate_repo(afs_path: str, org: str, dry_run: bool, dry_run_dir: str = "") 
                 f"Repo {info.github_url} exists and has commits, aborting."
             )
 
-    # Create the blank repo if needed
-    if repo_exists:
-        logger.info("Repo already exists, skipping creation.")
-    elif dry_run:
-        logger.info("Dry run: skipping repository creation.")
-    else:
-        logger.info(f"Creating repository at {info.github_url}")
-        gh.repos.create_in_org(
-            org=org,
-            name=info.name,
-            visibility="internal",
-            custom_properties={
-                "type": "EPICS IOC",
-                "protect_default": "true",
-                "protect_master": "true",
-                "protect_gh_pages": "false",
-                "required_checks": "None",
-            },
-        )
-
-    # Set repo topics
-    if dry_run:
-        logger.info("Dry run: Skip setting standard repo topics")
-    else:
-        logger.info("Setting standard repo topics")
-        gh.repos.replace_all_topics(
-            owner=org,
-            repo=info.name,
-            names=[
-                "epics",
-                "epics-ioc",
-                f"ecs-epics-ioc-{info.area}",
-            ],
-        )
-
     tmpdir_args = {}
     if dry_run:
         tmpdir_args["delete"] = False
@@ -155,6 +120,45 @@ def migrate_repo(afs_path: str, org: str, dry_run: bool, dry_run_dir: str = "") 
         if old_readmes:
             repo.index.remove([str(p) for p in old_readmes])
         commit(repo, new_readme, "MAINT: update readme")
+
+        # OK, great, we have an updated repo now.
+        # If we get this far, we can safely make the github repo.
+        # Some sources fail earlier, e.g. if the afs repo is empty...
+
+        # Create the blank repo if needed
+        if repo_exists:
+            logger.info("Repo already exists, skipping creation.")
+        elif dry_run:
+            logger.info("Dry run: skipping repository creation.")
+        else:
+            logger.info(f"Creating repository at {info.github_url}")
+            gh.repos.create_in_org(
+                org=org,
+                name=info.name,
+                visibility="internal",
+                custom_properties={
+                    "type": "EPICS IOC",
+                    "protect_default": "true",
+                    "protect_master": "true",
+                    "protect_gh_pages": "false",
+                    "required_checks": "None",
+                },
+            )
+
+        # Set repo topics
+        if dry_run:
+            logger.info("Dry run: Skip setting standard repo topics")
+        else:
+            logger.info("Setting standard repo topics")
+            gh.repos.replace_all_topics(
+                owner=org,
+                repo=info.name,
+                names=[
+                    "epics",
+                    "epics-ioc",
+                    f"ecs-epics-ioc-{info.area}",
+                ],
+            )
 
         # Time to push everything
         # Create a same-named head for every single branch on the afs remote
