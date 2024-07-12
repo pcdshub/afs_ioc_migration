@@ -5,6 +5,7 @@ import pytest
 
 from ..lock_repo import AlreadyLockedError, lock_file_repo
 from ..rename import RepoInfo
+from .conftest import xfail_git_setup
 
 
 @pytest.fixture(scope="function")
@@ -97,3 +98,28 @@ def test_hook_script(fake_ready_repo: Path):
     assert repo_info.github_ssh in completed_proc.stdout
     assert repo_info.github_url in completed_proc.stdout
     assert repo_info.afs_source in completed_proc.stdout
+
+
+def test_hooks_block_push(tmp_path: Path):
+    xfail_git_setup()
+    # Create a bare repository as an analog of the afs repo
+    afs_src = tmp_path / "ioc" / "tst" / "afs_src.git"
+    subprocess.run(["git", "init", "--bare", str(afs_src)], check=True)
+    # Clone the bare repository in order to get a working directory
+    wrk_src = tmp_path / "working"
+    subprocess.run(["git", "clone", str(afs_src), str(wrk_src)], check=True)
+    # Add a commit so we can push it back
+    subprocess.run(["touch", str(wrk_src / "file1")], check=True)
+    subprocess.run(["git", "add", "file1"], cwd=str(wrk_src), check=True)
+    subprocess.run(["git", "commit", "-m", "add file1"], cwd=str(wrk_src), check=True)
+    subprocess.run(["git", "push", "origin", "master"], cwd=str(wrk_src), check=True)
+    # Lock the bare repo
+    lock_file_repo(path=str(afs_src), org="pcdshub")
+    # Add another commit and get blocked by the hook
+    subprocess.run(["touch", str(wrk_src / "file2")], check=True)
+    subprocess.run(["git", "add", "file2"], cwd=str(wrk_src), check=True)
+    subprocess.run(["git", "commit", "-m", "add file2"], cwd=str(wrk_src), check=True)
+    with pytest.raises(subprocess.CalledProcessError):
+        subprocess.run(
+            ["git", "push", "origin", "master"], cwd=str(wrk_src), check=True
+        )
