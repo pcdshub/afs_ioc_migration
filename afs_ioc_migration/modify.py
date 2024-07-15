@@ -92,10 +92,7 @@ def add_readme_file(cloned_path: str, repo_info: RepoInfo) -> tuple[Path, list[P
     """
     dst_path = Path(cloned_path) / "README.md"
 
-    if dst_path.exists():
-        raise RuntimeError(f"{dst_path} already exists.")
-
-    # Find all other existing readme-like file to include
+    # Find all existing readme-like file to include
     original_paths = sorted(
         list(Path(cloned_path).glob("*readme*", case_sensitive=False))
     )

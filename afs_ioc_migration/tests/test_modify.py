@@ -80,13 +80,6 @@ def test_add_readme_file_none_existing(tmp_path: Path, repo_info: RepoInfo):
     assert "Original" not in contents
 
 
-def test_add_readme_file_already_existing(tmp_path: Path, repo_info: RepoInfo):
-    with (tmp_path / "README.md").open("w") as fd:
-        fd.write("words")
-    with pytest.raises(RuntimeError):
-        add_readme_file(str(tmp_path), repo_info)
-
-
 def test_add_readme_file_include_old(tmp_path: Path, repo_info: RepoInfo):
     old_readme_text1 = "very unique test text will not collide"
     old_readme_text2 = "another very unique test text wow"
