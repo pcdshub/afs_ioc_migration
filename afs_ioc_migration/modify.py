@@ -116,10 +116,11 @@ def add_readme_file(cloned_path: str, repo_info: RepoInfo) -> tuple[Path, list[P
         ),
     )
 
-    with dst_path.open("w") as fd:
-        fd.write(output_text)
-
     if original_paths:
         for path in original_paths:
             remove(path)
+
+    with dst_path.open("w") as fd:
+        fd.write(output_text)
+
     return dst_path, original_paths
