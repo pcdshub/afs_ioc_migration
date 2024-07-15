@@ -24,6 +24,10 @@ from ..rename import RepoInfo, rename
             "/afs/slac/g/cd/swe/git/repos/package/epics/ioc/rixs/thermotek.git",
             "ioc-rix-thermotek",
         ),
+        (
+            "/afs/slac/g/cd/swe/git/repos/package/epics/ioc/xpp/ccm/piMotion.git",
+            "ioc-xpp-ccm-piMotion",
+        ),
         ("/some/random/path", ValueError),
         (
             "/afs/slac/g/cd/swe/git/repos/package/epics/ioc/lcls/accelerator_thing.git",

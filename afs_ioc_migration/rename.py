@@ -1,6 +1,6 @@
 import dataclasses
-import os.path
 import typing
+from pathlib import Path
 
 T = typing.TypeVar("T")
 
@@ -71,15 +71,26 @@ def rename(old_path: str) -> str:
     The intent is to flatten filepath structures like so:
 
     - /some/long/path/ioc/common/gigECam.git -> ioc-common-gigECam
+
+    We also support one layer deeper because it exists for some reason
+    - /some/long/path/ioc/xpp/ccm/piMotion.git -> ioc-xpp-ccm-piMotion
     """
     # Split the old path and take the last 3
-    location, git_repo = os.path.split(old_path)
-    iocs_path, area = os.path.split(location)
-    _, ioc_literal = os.path.split(iocs_path)
+    path = Path(old_path).resolve()
+    if path.parts[-3] == "ioc":
+        ioc_literal = path.parts[-3]
+        area = path.parts[-2]
+        git_repo = path.parts[-1]
+    elif path.parts[-4] == "ioc":
+        ioc_literal = path.parts[-4]
+        area = path.parts[-3]
+        git_repo = "-".join(path.parts[-2:])
+    else:
+        raise ValueError(f"{old_path} is not a valid afs ioc path.")
 
     # check for "ioc" and one of the "afs_areas"
     if ioc_literal != "ioc":
-        raise ValueError(f"{old_path} is not a valid afs ioc path.")
+        raise ValueError(f"{ioc_literal} is not the ioc literal (somehow??).")
     if area not in afs_areas:
         raise ValueError(f"{old_path} has non-ecs area {area}")
 
