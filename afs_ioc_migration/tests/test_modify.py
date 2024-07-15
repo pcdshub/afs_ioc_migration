@@ -83,7 +83,7 @@ def test_add_readme_file_none_existing(tmp_path: Path, repo_info: RepoInfo):
 def test_add_readme_file_include_old(tmp_path: Path, repo_info: RepoInfo):
     old_readme_text1 = "very unique test text will not collide"
     old_readme_text2 = "another very unique test text wow"
-    old_readme_path1 = tmp_path / "README"
+    old_readme_path1 = tmp_path / "README.md"
     old_readme_path2 = tmp_path / "readme.txt"
     with old_readme_path1.open("w") as fd:
         fd.write(old_readme_text1)
@@ -97,7 +97,6 @@ def test_add_readme_file_include_old(tmp_path: Path, repo_info: RepoInfo):
     assert path.name == "README.md"
     assert old_paths[0] == old_readme_path1
     assert old_paths[1] == old_readme_path2
-    assert not old_readme_path1.exists()
     assert not old_readme_path2.exists()
     with path.open("r") as fd:
         contents = fd.read()
@@ -106,5 +105,5 @@ def test_add_readme_file_include_old(tmp_path: Path, repo_info: RepoInfo):
     assert "Original" in contents
     assert old_readme_text1 in contents
     assert old_readme_text2 in contents
-    assert "# README" in contents
+    assert "# README.md" in contents
     assert "# readme.txt" in contents
