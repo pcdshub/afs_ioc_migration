@@ -1,0 +1,17 @@
+name: PYPI Testing
+
+on:
+  push:
+  pull_request:
+  release:
+    types:
+      - published
+
+jobs:
+  test:
+    uses: pcdshub/pcds-ci-helpers/.github/workflows/python-pip-test.yml@master
+    with:
+      package-name: afs_ioc_migration
+      python-version: "3.12"
+  pre-commit:
+    uses: pcdshub/pcds-ci-helpers/.github/workflows/pre-commit.yml@master

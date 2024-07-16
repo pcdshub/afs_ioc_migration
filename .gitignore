@@ -7,3 +7,7 @@ build
 .pytest_cache
 .benchmarks
 .vscode
+.ruff_cache
+
+test_transfer
+dry_run_transfer

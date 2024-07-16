@@ -1,0 +1,4 @@
+fastcore
+ghapi
+gitpython
+jinja2
