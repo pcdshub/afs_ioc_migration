@@ -17,9 +17,11 @@ def lock_file_repo(path: str, org: str) -> None:
     repo_info = RepoInfo.from_afs(afs_source=path, org=org)
     hooks_dir = Path(repo_info.afs_source) / "hooks"
     if not hooks_dir.is_dir():
-        raise ValueError(
-            f"{path} is not a valid git repo, it has no hooks subdirectory."
-        )
+        hooks_dir = Path(repo_info.afs_source) / ".git" / "hooks"
+        if not hooks_dir.is_dir():
+            raise ValueError(
+                f"{path} is not a valid git repo, it has no hooks subdirectory."
+            )
 
     template_path = Path(__file__).parent / "hook_template.txt"
     with template_path.open("r") as fd:
