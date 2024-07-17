@@ -5,6 +5,7 @@ import logging
 import sys
 import time
 from typing import Iterable
+from urllib.error import HTTPError
 
 from .transfer import migrate_repo
 
@@ -73,6 +74,9 @@ def main(args: MainArgs) -> int:
             )
             try:
                 migrate_repo(afs_path=user_path, org=args.org, dry_run=args.dry_run)
+            except HTTPError:
+                logger.error("Stopping on HTTPError")
+                raise
             except Exception:
                 if args.stop_on_error:
                     raise
